@@ -42,6 +42,15 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: gh pr checkout ${{ github.event.issue.number }}
 
+      # LAB-ONLY DEVIATION (sc002 repro variant B): detach and delete the local
+      # PR branch so the handler's `git fetch pull/N/head:<branch>` can recreate
+      # it (upstream collision: fetch refuses into the checked-out branch).
+      - name: Lab workaround - detach HEAD
+        run: |
+          BR=$(git branch --show-current)
+          git checkout --detach
+          [[ -n "$BR" ]] && git branch -D "$BR" || true
+
       - name: Run Claude Mention Handler
         uses: elastic/ai-github-actions/workflows/mention-in-pr/rwxp@v0
         with:
